@@ -1,0 +1,45 @@
+name: Publicar RIFT FIGHTERS V34
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publicar-jogo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  copiar-jogo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório Rift
+        uses: actions/checkout@v4
+        with:
+          path: destino
+          persist-credentials: true
+      - name: Checkout do projeto RIFT FIGHTERS V34
+        uses: actions/checkout@v4
+        with:
+          repository: Vlzinn15x/Rift_Fighters_Novo
+          ref: main
+          path: original
+          persist-credentials: false
+      - name: Copiar o jogo para a raiz
+        run: |
+          rsync -a --exclude '.git' original/public/ destino/
+          touch destino/.nojekyll
+          test -f destino/index.html
+          test -f destino/game.js
+          test -d destino/assets
+      - name: Enviar arquivos ao repositório
+        working-directory: destino
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Publicar site RIFT FIGHTERS V34"
+            git push origin HEAD:main
+          fi
